@@ -86,7 +86,7 @@ export default function LoginCard({
   const handleVerifyOtp = async () => {
     setAlert(null);
     if (!otp.trim() || otp.trim().length !== 6) {
-      setAlert({ type: 'error', msg: 'Masukkan 6-digit kode OTP yang dikirim ke email Anda.' });
+      setAlert({ type: 'error', msg: 'Masukkan 6-digit Kode Akses Permanen Anda.' });
       return;
     }
 
@@ -107,7 +107,7 @@ export default function LoginCard({
       setTimeout(() => router.push('/dashboard'), 1200);
     } catch (err: any) {
       setLoading(false);
-      const msg = err.message || 'Kode OTP salah atau kedaluwarsa.';
+      const msg = err.message || 'Kode akses salah.';
       setAlert({ type: 'error', msg });
       setShake(true);
       setTimeout(() => setShake(false), 500);
@@ -199,7 +199,7 @@ export default function LoginCard({
 
       {/* OTP Input */}
       <div className={styles.formGroup} style={{ opacity: showOtpInput ? 1 : 0.5, transition: 'opacity 0.3s' }}>
-        <label className={styles.formLabel} htmlFor="otpInput">Kode Verifikasi (Dikirim ke Gmail)</label>
+        <label className={styles.formLabel} htmlFor="otpInput">Kode Akses Permanen</label>
         <div className={styles.inputWrap}>
           <span className={styles.inputIcon}>
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
@@ -212,7 +212,7 @@ export default function LoginCard({
             id="otpInput"
             className={styles.formInput}
             type="text"
-            placeholder={showOtpInput ? "Masukkan 6-digit OTP" : "Klik 'Masuk' untuk minta kode"}
+            placeholder={showOtpInput ? "Masukkan 6-digit kode" : "Klik 'Masuk' untuk lanjut"}
             maxLength={6}
             value={otp}
             onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
