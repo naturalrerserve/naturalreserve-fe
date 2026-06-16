@@ -33,7 +33,8 @@ export async function apiRequest(
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
   body?: any,
 ): Promise<any> {
-  const url = `${getApiUrl()}/${path.replace(/^\//, '')}`;
+  const baseUrl = getApiUrl().replace(/\/$/, '');
+  const url = `${baseUrl}/${path.replace(/^\//, '')}`;
   const token = getToken();
 
   const headers: Record<string, string> = {
