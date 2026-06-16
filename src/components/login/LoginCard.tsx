@@ -2,8 +2,9 @@
 import { useState, useEffect, KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '@/styles/login.module.css';
-import { nrLogin, nrVerifyLoginOtp, nrAuthReady, nrLogActivity } from '@/lib/firebase-data';
+import { nrLogin, nrVerifyLoginOtp, nrAuthReady, nrLogActivity, nrGoogleLogin } from '@/lib/firebase-data';
 import { auth } from '@/lib/firebase';
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function LoginCard({
   onSwitchTab,
@@ -108,6 +109,27 @@ export default function LoginCard({
     } catch (err: any) {
       setLoading(false);
       const msg = err.message || 'Kode akses salah.';
+      setAlert({ type: 'error', msg });
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    setAlert(null);
+    setLoading(true);
+    try {
+      if (!credentialResponse.credential) throw new Error('Token Google tidak ditemukan.');
+      await nrGoogleLogin(credentialResponse.credential);
+      
+      const user = auth.currentUser;
+      if (user) await nrLogActivity(user.uid, 'login', 'Login menggunakan akun Google');
+
+      setAlert({ type: 'success', msg: 'Login berhasil! Mengalihkan…' });
+      setTimeout(() => router.push('/dashboard'), 1200);
+    } catch (err: any) {
+      setLoading(false);
+      const msg = err.message || 'Gagal login menggunakan akun Google.';
       setAlert({ type: 'error', msg });
       setShake(true);
       setTimeout(() => setShake(false), 500);
@@ -256,6 +278,27 @@ export default function LoginCard({
           Masuk
         </span>
       </button>
+
+      {/* Google Login Divider */}
+      <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0' }}>
+        <div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }}></div>
+        <span style={{ padding: '0 10px', color: '#94a3b8', fontSize: '14px' }}>atau</span>
+        <div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }}></div>
+      </div>
+
+      {/* Google Login Button */}
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={() => {
+            setAlert({ type: 'error', msg: 'Terjadi kesalahan saat memuat Google Login.' });
+          }}
+          useOneTap
+          shape="rectangular"
+          theme="outline"
+          text="signin_with"
+        />
+      </div>
     </div>
   );
 }

@@ -61,6 +61,17 @@ export async function nrVerifyLoginOtp(username: string, otp: string): Promise<a
   return { uid: data.user.id, email: data.user.email };
 }
 
+export async function nrGoogleLogin(credential: string): Promise<any> {
+  const data = await api.post('auth/google', { credential });
+
+  if (data.access_token) {
+    setToken(data.access_token);
+    triggerAuthChange();
+  }
+
+  return { uid: data.user.id, email: data.user.email };
+}
+
 /* ── ADMIN LOGIN ── */
 export async function nrAdminLogin(username: string, password: string): Promise<any> {
   const data = await api.post('auth/admin/login', {
