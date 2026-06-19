@@ -2,9 +2,8 @@
 import { useState, useEffect, KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '@/styles/login.module.css';
-import { nrLogin, nrVerifyLoginOtp, nrAuthReady, nrLogActivity, nrGoogleLogin } from '@/lib/firebase-data';
+import { nrLogin, nrAuthReady, nrLogActivity } from '@/lib/firebase-data';
 import { auth } from '@/lib/firebase';
-import { GoogleLogin } from '@react-oauth/google';
 
 export default function LoginCard({
   onSwitchTab,
@@ -19,10 +18,6 @@ export default function LoginCard({
   const [loading,    setLoading]    = useState(false);
   const [alert, setAlert] = useState<{ type: 'error' | 'success'; msg: string } | null>(null);
   const [shake, setShake] = useState(false);
-  
-  // OTP state
-  const [otp, setOtp] = useState('');
-  const [showOtpInput, setShowOtpInput] = useState(false);
 
   /* Restore remembered username */
   useEffect(() => {
@@ -53,14 +48,7 @@ export default function LoginCard({
 
     try {
       /* Step 1: Login via NestJS backend */
-      const res = await nrLogin(username.trim(), password);
-
-      if (res.requiresOtp) {
-        setAlert({ type: 'success', msg: res.message });
-        setShowOtpInput(true);
-        setLoading(false);
-        return;
-      }
+      await nrLogin(username.trim(), password);
 
       /* Step 2: Remember me */
       if (rememberMe) {
@@ -84,64 +72,8 @@ export default function LoginCard({
     }
   };
 
-  const handleVerifyOtp = async () => {
-    setAlert(null);
-    if (!otp.trim() || otp.trim().length !== 6) {
-      setAlert({ type: 'error', msg: 'Masukkan 6-digit Kode Akses Permanen Anda.' });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await nrVerifyLoginOtp(username.trim(), otp.trim());
-
-      if (rememberMe) {
-        localStorage.setItem('nr_remember_user', username.trim());
-      } else {
-        localStorage.removeItem('nr_remember_user');
-      }
-
-      const user = auth.currentUser;
-      if (user) await nrLogActivity(user.uid, 'login', 'Login menggunakan password (2FA)');
-
-      setAlert({ type: 'success', msg: 'Verifikasi berhasil! Mengalihkan…' });
-      setTimeout(() => router.push('/dashboard'), 1200);
-    } catch (err: any) {
-      setLoading(false);
-      const msg = err.message || 'Kode akses salah.';
-      setAlert({ type: 'error', msg });
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
-    }
-  };
-
-  const handleGoogleSuccess = async (credentialResponse: any) => {
-    setAlert(null);
-    setLoading(true);
-    try {
-      if (!credentialResponse.credential) throw new Error('Token Google tidak ditemukan.');
-      await nrGoogleLogin(credentialResponse.credential);
-      
-      const user = auth.currentUser;
-      if (user) await nrLogActivity(user.uid, 'login', 'Login menggunakan akun Google');
-
-      setAlert({ type: 'success', msg: 'Login berhasil! Mengalihkan…' });
-      setTimeout(() => router.push('/dashboard'), 1200);
-    } catch (err: any) {
-      setLoading(false);
-      const msg = err.message || 'Gagal login menggunakan akun Google.';
-      setAlert({ type: 'error', msg });
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
-    }
-  };
-
   const handleMainAction = () => {
-    if (!showOtpInput) {
-      handleLogin();
-    } else {
-      handleVerifyOtp();
-    }
+    handleLogin();
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
@@ -181,7 +113,6 @@ export default function LoginCard({
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             onKeyDown={onKeyDown}
-            disabled={showOtpInput}
             autoFocus
           />
         </div>
@@ -200,9 +131,8 @@ export default function LoginCard({
             value={password}
             onChange={(e) => handlePasswordInput(e.target.value)}
             onKeyDown={onKeyDown}
-            disabled={showOtpInput}
           />
-          <button className={styles.eyeBtn} onClick={() => setShowCode(!showCode)} type="button" title="Tampilkan/sembunyikan" disabled={showOtpInput}>
+          <button className={styles.eyeBtn} onClick={() => setShowCode(!showCode)} type="button" title="Tampilkan/sembunyikan">
             {showCode ? (
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -216,31 +146,6 @@ export default function LoginCard({
               </svg>
             )}
           </button>
-        </div>
-      </div>
-
-      {/* OTP Input */}
-      <div className={styles.formGroup} style={{ opacity: showOtpInput ? 1 : 0.5, transition: 'opacity 0.3s' }}>
-        <label className={styles.formLabel} htmlFor="otpInput">Kode Akses Permanen</label>
-        <div className={styles.inputWrap}>
-          <span className={styles.inputIcon}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-          </span>
-          <input
-            id="otpInput"
-            className={styles.formInput}
-            type="text"
-            placeholder={showOtpInput ? "Masukkan 6-digit kode" : "Klik 'Masuk' untuk lanjut"}
-            maxLength={6}
-            value={otp}
-            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-            onKeyDown={onKeyDown}
-            disabled={!showOtpInput}
-          />
         </div>
       </div>
 
@@ -278,27 +183,6 @@ export default function LoginCard({
           Masuk
         </span>
       </button>
-
-      {/* Google Login Divider */}
-      <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0' }}>
-        <div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }}></div>
-        <span style={{ padding: '0 10px', color: '#94a3b8', fontSize: '14px' }}>atau</span>
-        <div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }}></div>
-      </div>
-
-      {/* Google Login Button */}
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={() => {
-            setAlert({ type: 'error', msg: 'Terjadi kesalahan saat memuat Google Login.' });
-          }}
-          useOneTap
-          shape="rectangular"
-          theme="outline"
-          text="signin_with"
-        />
-      </div>
     </div>
   );
 }

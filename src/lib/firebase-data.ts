@@ -35,35 +35,6 @@ export async function nrLogin(username: string, password: string): Promise<any> 
     password,
   });
 
-  if (data.requiresOtp) {
-    return data;
-  }
-
-  if (data.access_token) {
-    setToken(data.access_token);
-    triggerAuthChange();
-  }
-
-  return { uid: data.user.id, email: data.user.email };
-}
-
-export async function nrVerifyLoginOtp(username: string, otp: string): Promise<any> {
-  const data = await api.post('auth/login-verify', {
-    username,
-    otp,
-  });
-
-  if (data.access_token) {
-    setToken(data.access_token);
-    triggerAuthChange();
-  }
-
-  return { uid: data.user.id, email: data.user.email };
-}
-
-export async function nrGoogleLogin(credential: string): Promise<any> {
-  const data = await api.post('auth/google', { credential });
-
   if (data.access_token) {
     setToken(data.access_token);
     triggerAuthChange();

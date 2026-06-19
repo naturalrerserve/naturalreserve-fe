@@ -45,6 +45,7 @@ export default function DashboardPage() {
   const [showSettings, setShowSettings] = useState(false);
   const [lang,         setLang]         = useState<'id' | 'en'>('id');
   const [loading,     setLoading]     = useState(true);
+  const [selectedPondId, setSelectedPondId] = useState<number | null>(null);
   const toastTimer = useRef<NodeJS.Timeout | null>(null);
 
   /* ── AUTH GUARD ── */
@@ -139,9 +140,13 @@ export default function DashboardPage() {
     );
   }
 
-  const totalBiomass = fishList.reduce((s, f) => s + f.biomass, 0);
-  const totalPakan   = fishList.reduce((s, f) => s + f.pakanDay, 0);
-  const totalCount   = fishList.reduce((s, f) => s + f.qty, 0);
+  const displayFishList = selectedPondId 
+    ? fishList.filter(f => f.id === selectedPondId)
+    : fishList;
+
+  const totalBiomass = displayFishList.reduce((s, f) => s + f.biomass, 0);
+  const totalPakan   = displayFishList.reduce((s, f) => s + f.pakanDay, 0);
+  const totalCount   = displayFishList.reduce((s, f) => s + f.qty, 0);
 
   return (
     <div className={styles.pageBody}>
@@ -198,6 +203,37 @@ export default function DashboardPage() {
           </p>
         </header>
 
+        {/* ── POND SELECTOR ── */}
+        {fishList.length > 0 && (
+          <div style={{ marginBottom: 20, display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 10, scrollbarWidth: 'none' }}>
+            <button
+              onClick={() => setSelectedPondId(null)}
+              style={{
+                padding: '8px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.2s',
+                background: selectedPondId === null ? 'var(--teal)' : 'rgba(255,255,255,0.05)',
+                color: selectedPondId === null ? '#fff' : 'var(--mist)',
+                border: selectedPondId === null ? '1px solid var(--teal)' : '1px solid var(--border)'
+              }}
+            >
+              {lang === 'id' ? 'Semua Kolam' : 'All Tanks'}
+            </button>
+            {fishList.map(f => (
+              <button
+                key={f.id}
+                onClick={() => setSelectedPondId(f.id)}
+                style={{
+                  padding: '8px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.2s',
+                  background: selectedPondId === f.id ? 'var(--teal)' : 'rgba(255,255,255,0.05)',
+                  color: selectedPondId === f.id ? '#fff' : 'var(--mist)',
+                  border: selectedPondId === f.id ? '1px solid var(--teal)' : '1px solid var(--border)'
+                }}
+              >
+                {f.name}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* ── SUMMARY CARDS ── */}
         <SummaryCards
           totalBiomass={totalBiomass}
@@ -217,7 +253,7 @@ export default function DashboardPage() {
 
           {/* Fish Table Panel */}
           <FishTable
-            fish={fishList}
+            fish={displayFishList}
             lang={lang}
             onDelete={handleDeleteFish}
             onUpdate={handleUpdateFish}
@@ -227,7 +263,7 @@ export default function DashboardPage() {
 
         {/* ── ACTION BAR ── */}
         <ActionBar
-          fish={fishList}
+          fish={displayFishList}
           lang={lang}
           onClear={handleClearAll}
           showToast={showToast}
@@ -235,19 +271,19 @@ export default function DashboardPage() {
         />
 
         {/* ── SCHEDULE ── */}
-        <SchedulePanel fish={fishList} lang={lang} />
+        <SchedulePanel fish={displayFishList} lang={lang} />
 
         {/* ── REF TABLE ── */}
         <RefTablePanel lang={lang} />
 
         {/* ── FCR SECTION ── */}
-        <FcrSection fish={fishList} lang={lang} />
+        <FcrSection fish={displayFishList} lang={lang} />
 
         {/* ── POND SECTION ── */}
-        <PondSection fish={fishList} lang={lang} />
+        <PondSection fish={displayFishList} lang={lang} />
 
         {/* ── HISTORY ── */}
-        <HistorySection fish={fishList} lang={lang} showToast={showToast} user={user} />
+        <HistorySection fish={displayFishList} lang={lang} showToast={showToast} user={user} />
       </div>
 
       {/* TOAST */}
