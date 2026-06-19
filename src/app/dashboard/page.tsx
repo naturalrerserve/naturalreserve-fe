@@ -257,6 +257,7 @@ export default function DashboardPage() {
             lang={lang}
             onDelete={handleDeleteFish}
             onUpdate={handleUpdateFish}
+            onSelectPond={(id) => setSelectedPondId(id)}
             showToast={showToast}
           />
         </div>

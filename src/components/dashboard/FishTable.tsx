@@ -9,6 +9,7 @@ interface Props {
   lang: 'id' | 'en';
   onDelete: (id: number) => void;
   onUpdate: (fish: Fish) => void;
+  onSelectPond?: (id: number) => void;
   showToast: (msg: string) => void;
 }
 
@@ -31,7 +32,7 @@ function fmtDate(iso: string, lang: 'id' | 'en'): string {
   });
 }
 
-export default function FishTable({ fish, lang, onDelete, onUpdate, showToast }: Props) {
+export default function FishTable({ fish, lang, onDelete, onUpdate, onSelectPond, showToast }: Props) {
   /* ── Edit modal state ── */
   const [editFish,    setEditFish]    = useState<Fish | null>(null);
   const [editName,    setEditName]    = useState('');
@@ -135,11 +136,16 @@ export default function FishTable({ fish, lang, onDelete, onUpdate, showToast }:
                 {fish.map((f) => {
                   const deadTotal = (f.deadLog || []).reduce((s, d) => s + d.count, 0);
                   return (
-                    <tr key={f.id}>
+                    <tr 
+                      key={f.id} 
+                      onClick={() => onSelectPond && onSelectPond(f.id)}
+                      style={{ cursor: onSelectPond ? 'pointer' : 'default' }}
+                      className={onSelectPond ? styles.clickableRow : ''}
+                    >
                       <td>
                         <button
                           className={styles.tdTankLink}
-                          onClick={() => setStatsFish(f)}
+                          onClick={(e) => { e.stopPropagation(); setStatsFish(f); }}
                           title={id ? 'Lihat statistik tank' : 'View tank stats'}
                         >
                           {f.name}
@@ -172,8 +178,8 @@ export default function FishTable({ fish, lang, onDelete, onUpdate, showToast }:
                         <span style={{ fontSize: 9, color: 'var(--mist)' }}>{f.freq}x/{id ? 'hari' : 'day'}</span>
                       </td>
                       <td style={{ whiteSpace: 'nowrap' }}>
-                        <button className={styles.tdEdit} onClick={() => openEdit(f)} title="Edit">✏</button>
-                        <button className={styles.tdDel} onClick={() => onDelete(f.id)} title={id ? 'Hapus' : 'Delete'}>✕</button>
+                        <button className={styles.tdEdit} onClick={(e) => { e.stopPropagation(); openEdit(f); }} title="Edit">✏</button>
+                        <button className={styles.tdDel} onClick={(e) => { e.stopPropagation(); onDelete(f.id); }} title={id ? 'Hapus' : 'Delete'}>✕</button>
                       </td>
                     </tr>
                   );
