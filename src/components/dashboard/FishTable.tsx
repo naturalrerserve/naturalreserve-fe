@@ -10,6 +10,7 @@ interface Props {
   onDelete: (id: number) => void;
   onUpdate: (fish: Fish) => void;
   onSelectPond?: (id: number) => void;
+  selectedPondId?: number | null;
   showToast: (msg: string) => void;
 }
 
@@ -32,7 +33,7 @@ function fmtDate(iso: string, lang: 'id' | 'en'): string {
   });
 }
 
-export default function FishTable({ fish, lang, onDelete, onUpdate, onSelectPond, showToast }: Props) {
+export default function FishTable({ fish, lang, onDelete, onUpdate, onSelectPond, selectedPondId, showToast }: Props) {
   /* ── Edit modal state ── */
   const [editFish,    setEditFish]    = useState<Fish | null>(null);
   const [editName,    setEditName]    = useState('');
@@ -45,6 +46,9 @@ export default function FishTable({ fish, lang, onDelete, onUpdate, onSelectPond
 
   /* ── Tank Stats modal state ── */
   const [statsFish, setStatsFish] = useState<Fish | null>(null);
+
+  /* ── Search state ── */
+  const [searchQuery, setSearchQuery] = useState('');
 
   const id = lang === 'id';
 
@@ -111,8 +115,16 @@ export default function FishTable({ fish, lang, onDelete, onUpdate, onSelectPond
     <>
       {/* ═══════════════ FISH TABLE ═══════════════ */}
       <div className={styles.panel}>
-        <div className={styles.panelTitle}>
-          📋 {id ? 'Daftar Ikan' : 'Fish List'}
+        <div className={styles.panelTitle} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+          <span>📋 {id ? 'Daftar Ikan' : 'Fish List'}</span>
+          <input
+            className={styles.formInput}
+            type="text"
+            placeholder={id ? 'Cari nama kolam...' : 'Search tank name...'}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ maxWidth: 200, fontSize: 13, padding: '6px 12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)' }}
+          />
         </div>
 
         {fish.length === 0 ? (
@@ -121,7 +133,7 @@ export default function FishTable({ fish, lang, onDelete, onUpdate, onSelectPond
             {id ? 'Belum ada data ikan. Tambahkan ikan di panel kiri.' : 'No fish data yet. Add fish in the left panel.'}
           </div>
         ) : (
-          <div className={styles.fishTableWrap}>
+          <div className={styles.fishTableWrap} style={{ maxHeight: '400px', overflowY: 'auto' }}>
             <table className={styles.fishTable}>
               <thead>
                 <tr>
@@ -133,13 +145,18 @@ export default function FishTable({ fish, lang, onDelete, onUpdate, onSelectPond
                 </tr>
               </thead>
               <tbody>
-                {fish.map((f) => {
+                {fish.filter(f => !searchQuery || f.name.toLowerCase().includes(searchQuery.toLowerCase())).map((f) => {
                   const deadTotal = (f.deadLog || []).reduce((s, d) => s + d.count, 0);
+                  const isSelected = selectedPondId === f.id;
                   return (
                     <tr 
                       key={f.id} 
                       onClick={() => onSelectPond && onSelectPond(f.id)}
-                      style={{ cursor: onSelectPond ? 'pointer' : 'default' }}
+                      style={{ 
+                        cursor: onSelectPond ? 'pointer' : 'default',
+                        background: isSelected ? 'rgba(13,148,136,0.15)' : undefined,
+                        borderLeft: isSelected ? '3px solid var(--teal)' : '3px solid transparent'
+                      }}
                       className={onSelectPond ? styles.clickableRow : ''}
                     >
                       <td>

@@ -258,60 +258,7 @@ export default function FcrSection({ fish, lang }: Props) {
         </div>
       </div>
 
-      {/* Chart Panel */}
-      <div className={styles.chartPanel}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-          <div className={styles.panelTitle} style={{ marginBottom: 0 }}>
-            {id ? 'Daily Feed Accumulation Chart' : 'Daily Feed Accumulation Chart'}
-          </div>
-          <div style={{ display: 'flex', gap: 8, fontSize: 11, color: 'var(--mist)', alignItems: 'center' }}>
-            <span style={{ display: 'inline-block', width: 10, height: 10, background: 'var(--teal)', borderRadius: 2 }}></span> Feed/day
-            <span style={{ display: 'inline-block', width: 10, height: 10, background: 'var(--amber)', borderRadius: 2, marginLeft: 8 }}></span> Akumulatif FCR
-          </div>
-        </div>
-        <div className={styles.chartBody}>
-          {displayRows.length === 0 ? (
-            <div style={{ width: '100%', textAlign: 'center', color: 'var(--mist)', fontSize: 12 }}>No data.</div>
-          ) : (
-            displayRows
-              .filter((_, i) => i % Math.max(1, Math.ceil(displayRows.length / 60)) === 0 || i === displayRows.length - 1)
-              .map((r, i) => {
-                const h = maxPakan > 0 ? Math.max(2, (r.pakanToday / maxPakan) * 110) : 2;
-                const fh = maxFcrCum > 0 ? Math.max(2, (parseFloat(r.fcrCum) / maxFcrCum) * 110) : 2;
-                const label = viewMode === 'weekly'
-                  ? r.day
-                  : (typeof r.day === 'number' && r.day % 5 === 0 ? `D${r.day}` : '');
-                return (
-                  <div key={i} className={styles.chartBarCol}>
-                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 1, height: '110px', width: '100%' }}>
-                      <div
-                        className={styles.chartBar}
-                        style={{ height: `${h}px`, flex: 1, background: 'linear-gradient(to top,var(--teal),var(--teal3))' }}
-                        title={`Pakan: ${(r.pakanToday / 1000).toFixed(3)}kg`}
-                      />
-                      <div
-                        className={styles.chartBar}
-                        style={{ height: `${fh}px`, flex: 1, background: 'linear-gradient(to top,var(--amber),var(--amber2))', opacity: 0.7 }}
-                        title={`FCR: ${r.fcrCum}`}
-                      />
-                    </div>
-                    <div className={styles.chartBarLabel}>{label}</div>
-                  </div>
-                );
-              })
-          )}
-        </div>
-        {/* Phase timeline */}
-        <div style={{ marginTop: 20 }}>
-          <div style={{ fontSize: 10, color: 'var(--mist)', marginBottom: 6, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Culture Phase Timeline</div>
-          <div className={styles.phaseRow}>
-            <div className={styles.phaseSeg} style={{ flex: phase1Days, background: '#5eead4' }} title={`Nursery (${phase1Days}d)`} />
-            <div className={styles.phaseSeg} style={{ flex: phase2Days, background: '#14b8a6' }} title={`Growth I (${phase2Days}d)`} />
-            <div className={styles.phaseSeg} style={{ flex: phase3Days, background: '#0d9488' }} title={`Growth II (${phase3Days}d)`} />
-            <div className={styles.phaseSeg} style={{ flex: phase4Days, background: '#0a7c72' }} title={`Growth III (${phase4Days}d)`} />
-          </div>
-        </div>
-      </div>
+
 
       {/* Daily Table */}
       <div className={styles.panel} style={{ padding: 0, overflow: 'hidden', marginTop: 16 }}>

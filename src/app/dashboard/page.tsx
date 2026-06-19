@@ -203,36 +203,7 @@ export default function DashboardPage() {
           </p>
         </header>
 
-        {/* ── POND SELECTOR ── */}
-        {fishList.length > 0 && (
-          <div style={{ marginBottom: 20, display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 10, scrollbarWidth: 'none' }}>
-            <button
-              onClick={() => setSelectedPondId(null)}
-              style={{
-                padding: '8px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.2s',
-                background: selectedPondId === null ? 'var(--teal)' : 'rgba(255,255,255,0.05)',
-                color: selectedPondId === null ? '#fff' : 'var(--mist)',
-                border: selectedPondId === null ? '1px solid var(--teal)' : '1px solid var(--border)'
-              }}
-            >
-              {lang === 'id' ? 'Semua Kolam' : 'All Tanks'}
-            </button>
-            {fishList.map(f => (
-              <button
-                key={f.id}
-                onClick={() => setSelectedPondId(f.id)}
-                style={{
-                  padding: '8px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.2s',
-                  background: selectedPondId === f.id ? 'var(--teal)' : 'rgba(255,255,255,0.05)',
-                  color: selectedPondId === f.id ? '#fff' : 'var(--mist)',
-                  border: selectedPondId === f.id ? '1px solid var(--teal)' : '1px solid var(--border)'
-                }}
-              >
-                {f.name}
-              </button>
-            ))}
-          </div>
-        )}
+        {/* ── POND SELECTOR DIHAPUS SESUAI REQUEST ── */}
 
         {/* ── SUMMARY CARDS ── */}
         <SummaryCards
@@ -253,11 +224,12 @@ export default function DashboardPage() {
 
           {/* Fish Table Panel */}
           <FishTable
-            fish={displayFishList}
+            fish={fishList} /* Selalu pass semua ikan ke FishTable */
             lang={lang}
             onDelete={handleDeleteFish}
             onUpdate={handleUpdateFish}
-            onSelectPond={(id) => setSelectedPondId(id)}
+            onSelectPond={(id) => setSelectedPondId(prev => prev === id ? null : id)}
+            selectedPondId={selectedPondId}
             showToast={showToast}
           />
         </div>
