@@ -20,6 +20,7 @@ export default function HistorySection({ fish, lang, showToast, user }: Props) {
   const [chip, setChip] = useState<Period>('today');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   
   const id = lang === 'id';
 
@@ -198,14 +199,55 @@ export default function HistorySection({ fish, lang, showToast, user }: Props) {
                     <div className={styles.histKpiLbl}>{id ? 'Jumlah Ikan' : 'Fish Count'}</div>
                   </div>
                 </div>
-                <div className={styles.histFishList}>
+                <div className={styles.histFishList} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginTop: 10 }}>
                   {entry.fish.slice(0, 6).map((f, i) => (
                     <span key={i} className={styles.histFishTag}>{f.name} ({f.weight}g)</span>
                   ))}
                   {entry.fish.length > 6 && (
                     <span className={styles.histFishTag}>+{entry.fish.length - 6} {id ? 'lagi' : 'more'}</span>
                   )}
+                  <button 
+                    onClick={() => setExpanded(prev => ({ ...prev, [k]: !prev[k] }))}
+                    style={{ marginLeft: 'auto', background: 'transparent', border: '1px solid var(--teal)', color: 'var(--teal)', borderRadius: 12, padding: '3px 10px', fontSize: 11, cursor: 'pointer', transition: 'all 0.2s' }}
+                    onMouseOver={(e) => { e.currentTarget.style.background = 'var(--teal)'; e.currentTarget.style.color = '#fff'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--teal)'; }}
+                  >
+                    {expanded[k] ? (id ? 'Sembunyikan Detail ▴' : 'Hide Detail ▴') : (id ? 'Lihat Detail ▾' : 'View Detail ▾')}
+                  </button>
                 </div>
+                {expanded[k] && (
+                  <div className={styles.fishTableWrap} style={{ marginTop: 12, background: 'rgba(0,0,0,0.15)', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)' }}>
+                    <table className={styles.fishTable}>
+                      <thead>
+                        <tr>
+                          <th>{id ? 'Nama / Kolam' : 'Name / Tank'}</th>
+                          <th>{id ? 'Berat & Biomassa' : 'Weight & Biomass'}</th>
+                          <th>FR (%)</th>
+                          <th>{id ? 'Pakan/Hari' : 'Feed/Day'}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {entry.fish.map((f, idx) => {
+                          const deadTotal = (f.deadLog || []).reduce((s, d) => s + d.count, 0);
+                          return (
+                            <tr key={idx} style={{ animation: 'none' }}>
+                              <td>
+                                <span style={{ fontWeight: 600, color: '#fff' }}>{f.name}</span>
+                                {deadTotal > 0 && <span style={{ fontSize: 10, color: 'var(--coral)', marginLeft: 6 }}>💀 {deadTotal}</span>}
+                              </td>
+                              <td>
+                                {f.weight}g <span style={{ fontSize: 10, color: 'var(--mist)' }}>({f.qty.toLocaleString('id-ID')} ekor)</span><br/>
+                                <span style={{ fontSize: 10, color: 'var(--teal3)' }}>Biomassa: {f.biomass >= 1000 ? `${(f.biomass / 1000).toFixed(2)} kg` : `${f.biomass.toFixed(0)} g`}</span>
+                              </td>
+                              <td style={{ color: 'var(--amber)' }}>{f.fr}</td>
+                              <td style={{ color: 'var(--lime)' }}>{f.pakanDay >= 1000 ? `${(f.pakanDay / 1000).toFixed(2)} kg` : `${f.pakanDay.toFixed(0)} g`}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             );
           })}
