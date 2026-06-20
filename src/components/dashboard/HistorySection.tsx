@@ -151,7 +151,7 @@ export default function HistorySection({ fish, lang, showToast, user }: Props) {
         {!loaded && (
           <button className={styles.btnPeriod} onClick={loadHistory}>📂 {id ? 'Muat Riwayat' : 'Load History'}</button>
         )}
-        <span style={{ fontSize: 11, color: 'var(--mist)' }}>Auto-save active • Data stored in local browser storage (localStorage)</span>
+        <span style={{ fontSize: 11, color: 'var(--mist)' }}>Data tersimpan dengan aman di Cloud Database (PostgreSQL)</span>
       </div>
 
       {!loaded ? (
